@@ -2,8 +2,8 @@ name: RSS to Feishu Bot
 
 on:
   schedule:
-    # 每 2 小时运行一次 (UTC 时间)
-    - cron: '0 */2 * * *'
+    # 每天执行两次 (分别对应北京时间上午 8 点和晚上 8 点)
+    - cron: '0 0,12 * * *'
   workflow_dispatch: # 支持手动触发测试
 
 jobs:
