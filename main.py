@@ -3,10 +3,12 @@ import requests
 import os
 import json
 import hashlib
+import re
 from datetime import datetime
 
 # 从 GitHub Secrets 中获取 Webhook 地址
 FEISHU_WEBHOOK_URL = os.environ.get("FEISHU_WEBHOOK")
+AI_API_KEY = os.environ.get("AI_API_KEY")  # 这里可以填入你的 AI API Key，比如 SiliconFlow 或 DeepSeek
 
 # 订阅列表 (根据 Gist 提取的部分优质源)
 RSS_FEEDS = [
@@ -35,7 +37,43 @@ def get_article_id(entry):
     content = entry.get('id', entry.get('link', ''))
     return hashlib.md5(content.encode('utf-8')).hexdigest()
 
-def send_to_feishu(title, link, site_name):
+def clean_html(raw_html):
+    # 简单的清理 HTML 标签
+    cleaner = re.compile('<.*?>')
+    return re.sub(cleaner, '', raw_html).strip()
+
+def get_summary(text):
+    text = clean_html(text)
+    if not text:
+        return "无摘要内容"
+        
+    if not AI_API_KEY:
+        # 如果没有配置 AI API Key，则仅仅截取前 200 个字符作为摘要
+        return text[:200] + "..." if len(text) > 200 else text
+
+    # 使用 AI 进行内容总结 (使用官方 DeepSeek API)
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {AI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": "你是一个专业的文章总结助手。请用一段自然流畅的中文总结以下文章的核心内容，不需要额外的客套话，字数控制在150字左右。"},
+            {"role": "user", "content": text[:4000]} # 截取前 4000 字发给 AI 以节省 Token 和加快速度
+        ],
+        "temperature": 0.3
+    }
+    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=30)
+        data = resp.json()
+        return data['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        print(f"AI 总结出错: {e}")
+        return text[:200] + "..."
+
+def send_to_feishu(title, link, site_name, summary):
     print(f"推送文章: {title}")
     content = {
         "msg_type": "post",
@@ -45,7 +83,12 @@ def send_to_feishu(title, link, site_name):
                     "title": f"🆕 {site_name} 更新啦！",
                     "content": [
                         [
-                            {"tag": "text", "text": f"标题：{title}\n\n"},
+                            {"tag": "text", "text": f"📍 标题：{title}\n\n"}
+                        ],
+                        [
+                            {"tag": "text", "text": f"💡 总结：{summary}\n\n"}
+                        ],
+                        [
                             {"tag": "a", "text": "👉 点击这里阅读全文", "href": link}
                         ]
                     ]
@@ -73,7 +116,18 @@ def main():
             for entry in feed.entries[:3]:
                 article_id = get_article_id(entry)
                 if article_id not in sent_articles:
-                    send_to_feishu(entry.title, entry.link, feed_info['name'])
+                    # 获取 RSS 中包含的文章内容，优先获取 content，其次 summary
+                    raw_content = ""
+                    if 'content' in entry:
+                        raw_content = entry.content[0].value
+                    elif 'summary' in entry:
+                        raw_content = entry.summary
+                    elif 'description' in entry:
+                        raw_content = entry.description
+                        
+                    summary = get_summary(raw_content)
+                    
+                    send_to_feishu(entry.title, entry.link, feed_info['name'], summary)
                     new_sent_list.append(article_id)
         except Exception as e:
             print(f"抓取 {feed_info['name']} 出错: {e}")

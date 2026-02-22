@@ -25,6 +25,7 @@ jobs:
       - name: Run RSS Bot
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: python main.py
 
       - name: Commit and Push if updated
