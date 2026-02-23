@@ -8,7 +8,13 @@ from datetime import datetime
 
 # 从 GitHub Secrets 中获取 Webhook 地址
 FEISHU_WEBHOOK_URL = os.environ.get("FEISHU_WEBHOOK")
-AI_API_KEY = os.environ.get("AI_API_KEY")  # 这里可以填入你的 AI API Key，比如 SiliconFlow 或 DeepSeek
+AI_API_KEY = os.environ.get("AI_API_KEY")
+
+# Feishu Bitable 配置
+FEISHU_APP_ID = os.environ.get("FEISHU_APP_ID")
+FEISHU_APP_SECRET = os.environ.get("FEISHU_APP_SECRET")
+BITABLE_APP_TOKEN = os.environ.get("BITABLE_APP_TOKEN")
+BITABLE_TABLE_ID = os.environ.get("BITABLE_TABLE_ID")
 
 # 订阅列表 (根据 Gist 提取的部分优质源)
 RSS_FEEDS = [
@@ -100,6 +106,57 @@ def send_to_feishu(title, link, site_name, summary):
     if resp.status_code != 200:
         print(f"推送失败: {resp.text}")
 
+def get_tenant_access_token():
+    url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+    payload = {
+        "app_id": FEISHU_APP_ID,
+        "app_secret": FEISHU_APP_SECRET
+    }
+    try:
+        resp = requests.post(url, json=payload)
+        return resp.json().get("tenant_access_token")
+    except Exception as e:
+        print(f"获取 Feishu Token 失败: {e}")
+        return None
+
+def send_to_bitable(title, link, site_name, summary):
+    if not (FEISHU_APP_ID and FEISHU_APP_SECRET and BITABLE_APP_TOKEN and BITABLE_TABLE_ID):
+        print("未配置 Bitable 相关环境变量，跳过同步")
+        return
+
+    token = get_tenant_access_token()
+    if not token:
+        return
+
+    url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}/tables/{BITABLE_TABLE_ID}/records"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    # 字段名称需要根据你的多维表格实际情况修改
+    fields = {
+        "标题": title,
+        "链接": {
+            "link": link,
+            "text": "查看全文"
+        },
+        "来源": site_name,
+        "摘要总结": summary,
+        "发布时间": int(datetime.now().timestamp() * 1000)
+    }
+    
+    payload = {"fields": fields}
+    
+    try:
+        resp = requests.post(url, json=payload, headers=headers)
+        if resp.status_code == 200:
+            print(f"同步到 Bitable 成功: {title}")
+        else:
+            print(f"同步到 Bitable 失败: {resp.text}")
+    except Exception as e:
+        print(f"同步到 Bitable 出错: {e}")
+
 def main():
     if not FEISHU_WEBHOOK_URL:
         print("错误: 未设置 FEISHU_WEBHOOK 环境变量")
@@ -127,7 +184,12 @@ def main():
                         
                     summary = get_summary(raw_content)
                     
+                    # 1. 发送到飞书群
                     send_to_feishu(entry.title, entry.link, feed_info['name'], summary)
+                    
+                    # 2. 同步到飞书多维表格
+                    send_to_bitable(entry.title, entry.link, feed_info['name'], summary)
+                    
                     new_sent_list.append(article_id)
         except Exception as e:
             print(f"抓取 {feed_info['name']} 出错: {e}")
