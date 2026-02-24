@@ -18,11 +18,21 @@ BITABLE_TABLE_ID = os.environ.get("BITABLE_TABLE_ID")
 
 # 订阅列表 (根据 Gist 提取的部分优质源)
 RSS_FEEDS = [
-    {"name": "Simon Willison", "url": "https://simonwillison.net/atom/everything/"},
-    {"name": "Jeff Geerling", "url": "https://www.jeffgeerling.com/blog.xml"},
-    {"name": "Daring Fireball", "url": "https://daringfireball.net/feeds/main"},
-    {"name": "Krebs on Security", "url": "https://krebsonsecurity.com/feed/"},
-    {"name": "Sean Goedecke", "url": "https://seangoedecke.com/rss.xml"}
+    {"name": "simonwillison.net", "url": "https://simonwillison.net/atom/everything/"},
+    {"name": "jeffgeerling.com", "url": "https://www.jeffgeerling.com/blog.xml"},
+    {"name": "seangoedecke.com", "url": "https://www.seangoedecke.com/rss.xml"},
+    {"name": "krebsonsecurity.com", "url": "https://krebsonsecurity.com/feed/"},
+    {"name": "daringfireball.net", "url": "https://daringfireball.net/feeds/main"},
+    {"name": "ericmigi.com", "url": "https://ericmigi.com/rss.xml"},
+    {"name": "antirez.com", "url": "http://antirez.com/rss"},
+    {"name": "idiallo.com", "url": "https://idiallo.com/feed.rss"},
+    {"name": "maurycyz.com", "url": "https://maurycyz.com/index.xml"},
+    {"name": "pluralistic.net", "url": "https://pluralistic.net/feed/"},
+    {"name": "shkspr.mobi", "url": "https://shkspr.mobi/blog/feed/"},
+    {"name": "lcamtuf.substack.com", "url": "https://lcamtuf.substack.com/feed"},
+    {"name": "mitchellh.com", "url": "https://mitchellh.com/feed.xml"},
+    {"name": "dynomight.net", "url": "https://dynomight.net/feed.xml"},
+    {"name": "utcc.utoronto.ca/~cks", "url": "https://utcc.utoronto.ca/~cks/space/blog/?atom"}
 ]
 
 DATA_FILE = "sent_articles.json"
