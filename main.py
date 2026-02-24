@@ -32,7 +32,19 @@ RSS_FEEDS = [
     {"name": "lcamtuf.substack.com", "url": "https://lcamtuf.substack.com/feed"},
     {"name": "mitchellh.com", "url": "https://mitchellh.com/feed.xml"},
     {"name": "dynomight.net", "url": "https://dynomight.net/feed.xml"},
-    {"name": "utcc.utoronto.ca/~cks", "url": "https://utcc.utoronto.ca/~cks/space/blog/?atom"}
+    {"name": "utcc.utoronto.ca/~cks", "url": "https://utcc.utoronto.ca/~cks/space/blog/?atom"},
+    {"name": "GitHub Trending Weekly", "url": "https://redreamality.com/GitHubTrendingRSS/trending-weekly.xml"},
+    # 宏观科技 / 商业趋势
+    {"name": "Bloomberg Technology", "url": "https://news.google.com/rss/search?q=site:bloomberg.com+technology"},
+    {"name": "MIT Technology Review", "url": "https://www.technologyreview.com/feed/"},
+    {"name": "The Verge", "url": "https://www.theverge.com/rss/index.xml"},
+    {"name": "Wired", "url": "https://www.wired.com/feed/rss"},
+    # AI / 大模型 / 核心玩家
+    {"name": "OpenAI Blog", "url": "https://openai.com/blog/rss.xml"},
+    {"name": "Google DeepMind Blog", "url": "https://deepmind.google/blog/rss.xml"},
+    {"name": "Meta AI Blog", "url": "https://ai.meta.com/blog/rss/"},
+    {"name": "BAIR Blog", "url": "https://bair.berkeley.edu/blog/feed.xml"},
+    {"name": "Hugging Face Blog", "url": "https://huggingface.co/blog/feed.xml"}
 ]
 
 DATA_FILE = "sent_articles.json"
